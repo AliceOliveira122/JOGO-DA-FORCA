@@ -1,491 +1,422 @@
 
-'use strict';
-
-/* ==========================================
-   JOGO DA FORCA - SISTEMA PRINCIPAL
-========================================== */
-
-const words = {
-  animals: {
-    easy: [
-      { word: 'GATO', hint: 'Animal doméstico que gosta de dormir.' },
-      { word: 'PATO', hint: 'Ave que gosta de nadar.' },
-      { word: 'LEAO', hint: 'Conhecido como o rei da selva.' },
-      { word: 'RATO', hint: 'Pequeno roedor.' },
-      { word: 'URSO', hint: 'Animal grande que pode hibernar.' }
-    ],
-    medium: [
-      { word: 'GIRAFA', hint: 'Animal de pescoço muito comprido.' },
-      { word: 'COELHO', hint: 'Animal conhecido pelas orelhas compridas.' },
-      { word: 'TARTARUGA', hint: 'Animal que possui um casco.' },
-      { word: 'GOLFINHO', hint: 'Mamífero que vive no mar.' }
-    ],
-    hard: [
-      { word: 'ORNITORRINCO', hint: 'Mamífero que põe ovos e possui bico.' },
-      { word: 'CAMALEAO', hint: 'Réptil que pode mudar de cor.' },
-      { word: 'HIPOPOTAMO', hint: 'Grande mamífero que vive próximo à água.' },
-      { word: 'CHIMPANZE', hint: 'Primata muito inteligente.' }
-    ]
-  },
-
-  science: {
-    easy: [
-      { word: 'AGUA', hint: 'Substância essencial para a vida.' },
-      { word: 'ATOMO', hint: 'Unidade básica da matéria.' },
-      { word: 'LUZ', hint: 'Permite enxergar os objetos.' },
-      { word: 'AR', hint: 'Mistura de gases que respiramos.' }
-    ],
-    medium: [
-      { word: 'CELULA', hint: 'Unidade básica dos seres vivos.' },
-      { word: 'PLANETA', hint: 'Corpo celeste que orbita uma estrela.' },
-      { word: 'OXIGENIO', hint: 'Elemento químico importante para a respiração.' },
-      { word: 'MOLECULA', hint: 'Conjunto de átomos ligados.' }
-    ],
-    hard: [
-      { word: 'FOTOSSINTESE', hint: 'Processo pelo qual plantas produzem seu alimento.' },
-      { word: 'GRAVIDADE', hint: 'Força que atrai os corpos.' },
-      { word: 'ELETRON', hint: 'Partícula de carga elétrica negativa.' },
-      { word: 'EVAPORACAO', hint: 'Passagem do estado líquido para o gasoso.' }
-    ]
-  },
-
-  geography: {
-    easy: [
-      { word: 'BRASIL', hint: 'País onde vivemos.' },
-      { word: 'MAPA', hint: 'Representação de um espaço geográfico.' },
-      { word: 'RIO', hint: 'Curso natural de água.' },
-      { word: 'ILHA', hint: 'Porção de terra cercada por água.' }
-    ],
-    medium: [
-      { word: 'CONTINENTE', hint: 'Grande extensão de terras emersas.' },
-      { word: 'OCEANO', hint: 'Grande massa de água salgada.' },
-      { word: 'EQUADOR', hint: 'Linha imaginária que divide a Terra em dois hemisférios.' },
-      { word: 'CAPITAL', hint: 'Cidade onde geralmente fica o governo de um país.' }
-    ],
-    hard: [
-      { word: 'ARQUIPÉLAGO', hint: 'Conjunto de ilhas.' },
-      { word: 'HEMISFERIO', hint: 'Metade de uma esfera, como a Terra.' },
-      { word: 'CORDILHEIRA', hint: 'Conjunto de montanhas.' },
-      { word: 'MERIDIANO', hint: 'Linha imaginária usada para medir longitudes.' }
-    ]
-  },
-
-  technology: {
-    easy: [
-      { word: 'MOUSE', hint: 'Acessório usado para controlar o cursor.' },
-      { word: 'TELA', hint: 'Parte do computador onde aparecem as imagens.' },
-      { word: 'SITE', hint: 'Página ou conjunto de páginas na internet.' },
-      { word: 'DADO', hint: 'Informação que pode ser armazenada.' }
-    ],
-    medium: [
-      { word: 'INTERNET', hint: 'Rede mundial de computadores.' },
-      { word: 'TECLADO', hint: 'Dispositivo usado para digitar.' },
-      { word: 'ROBOTICA', hint: 'Área que estuda e desenvolve robôs.' },
-      { word: 'SENHA', hint: 'Código usado para proteger uma conta.' }
-    ],
-    hard: [
-      { word: 'ALGORITMO', hint: 'Sequência de instruções para resolver um problema.' },
-      { word: 'PROCESSADOR', hint: 'Componente responsável por executar instruções.' },
-      { word: 'PROGRAMACAO', hint: 'Criação de instruções para computadores.' },
-      { word: 'CIBERSEGURANCA', hint: 'Proteção de sistemas e dados digitais.' }
-    ]
-  },
-
-  food: {
-    easy: [
-      { word: 'BOLO', hint: 'Doce muito comum em aniversários.' },
-      { word: 'PIZZA', hint: 'Prato geralmente redondo com cobertura.' },
-      { word: 'UVA', hint: 'Fruta pequena que cresce em cachos.' },
-      { word: 'ARROZ', hint: 'Alimento muito consumido no Brasil.' }
-    ],
-    medium: [
-      { word: 'LASANHA', hint: 'Prato feito com camadas de massa.' },
-      { word: 'ABACAXI', hint: 'Fruta tropical com casca espinhosa.' },
-      { word: 'MORANGO', hint: 'Fruta vermelha com pequenas sementes.' },
-      { word: 'PANQUECA', hint: 'Massa fina que pode ter recheio.' }
-    ],
-    hard: [
-      { word: 'ESCONDIDINHO', hint: 'Prato com recheio coberto por purê.' },
-      { word: 'BRUSCHETTA', hint: 'Entrada italiana feita com pão.' },
-      { word: 'RATATOUILLE', hint: 'Prato francês preparado com legumes.' },
-      { word: 'CARBONARA', hint: 'Molho italiano tradicional para massas.' }
-    ]
-  }
-};
-
-const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-
-const difficultySettings = {
-  easy: {
-    lives: 6,
-    description: 'Fácil: palavras curtas e 6 tentativas.',
-    points: 10
-  },
-  medium: {
-    lives: 6,
-    description: 'Médio: palavras maiores e 6 tentativas.',
-    points: 20
-  },
-  hard: {
-    lives: 6,
-    description: 'Difícil: palavras desafiadoras e 6 tentativas.',
-    points: 35
-  }
-};
-
-/* ==========================================
-   ELEMENTOS E VARIÁVEIS
-========================================== */
-
-const $ = id => document.getElementById(id);
-
-const difficultySelect = $('difficulty');
-const categorySelect = $('category');
-const keyboard = $('keyboard');
-const wordElement = $('word');
-const hintElement = $('hint');
-const messageElement = $('message');
-
-const bodyParts = [
-  'head',
-  'body',
-  'leftArm',
-  'rightArm',
-  'leftLeg',
-  'rightLeg'
-];
-
-let currentWord = '';
-let currentHint = '';
-let currentCategory = '';
-let guessedLetters = [];
-let wrongAttempts = 0;
-let maxLives = 6;
-let score = 0;
-let record = 0;
-let gameFinished = false;
-let hintUsed = false;
-
-const categoryNames = {
-  all: 'TODOS OS TEMAS',
-  animals: 'ANIMAIS',
-  science: 'CIÊNCIAS',
-  geography: 'GEOGRAFIA',
-  technology: 'TECNOLOGIA',
-  food: 'ALIMENTOS'
-};
-
-const difficultyNames = {
-  easy: 'Fácil',
-  medium: 'Médio',
-  hard: 'Difícil'
-};
-
-/* ==========================================
-   SALVAMENTO DO RECORDE
-========================================== */
-
-function loadRecord() {
-  try {
-    record = Number(localStorage.getItem('forcaRecord')) || 0;
-  } catch (_) {
-    record = 0;
-  }
-  $('record').textContent = record;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-function saveRecord() {
-  if (score > record) {
-    record = score;
-    try {
-      localStorage.setItem('forcaRecord', String(record));
-    } catch (_) {
-      // O jogo continua funcionando sem armazenamento.
-    }
-  }
-  $('record').textContent = record;
+:root {
+  --background: #111025;
+  --card: #201e3c;
+  --purple: #8b5cf6;
+  --purple-light: #a78bfa;
+  --text: #f5f3ff;
+  --muted: #aaa6c4;
+  --green: #34d399;
+  --red: #fb7185;
 }
 
-/* ==========================================
-   ESCOLHA DE PALAVRAS
-========================================== */
-
-function normalizeWord(word) {
-  return word.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+body {
+  min-height: 100vh;
+  padding: 25px 15px;
+  background:
+    radial-gradient(circle at top left, #34235e, transparent 40%),
+    radial-gradient(circle at bottom right, #25205a, transparent 40%),
+    var(--background);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-function getAvailableWords(category, difficulty) {
-  if (category !== 'all') {
-    return words[category][difficulty].map(item => ({
-      ...item,
-      category
-    }));
-  }
-
-  const available = [];
-
-  Object.keys(words).forEach(theme => {
-    words[theme][difficulty].forEach(item => {
-      available.push({
-        ...item,
-        category: theme
-      });
-    });
-  });
-
-  return available;
+.container {
+  width: 100%;
+  max-width: 850px;
+  margin: auto;
 }
 
-function chooseWord() {
-  const difficulty = difficultySelect.value;
-  const category = categorySelect.value;
-  const available = getAvailableWords(category, difficulty);
-
-  const selected = available[Math.floor(Math.random() * available.length)];
-
-  currentWord = normalizeWord(selected.word);
-  currentHint = selected.hint;
-  currentCategory = selected.category;
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 15px 0 25px;
+  text-align: left;
 }
 
-/* ==========================================
-   INICIAR JOGO
-========================================== */
-
-function newGame() {
-  chooseWord();
-
-  guessedLetters = [];
-  wrongAttempts = 0;
-  gameFinished = false;
-  hintUsed = false;
-
-  maxLives = difficultySettings[difficultySelect.value].lives;
-
-  resetDrawing();
-  createKeyboard();
-  renderWord();
-
-  $('lives').textContent = maxLives;
-  $('categoryLabel').textContent = `TEMA: ${categoryNames[currentCategory]}`;
-  $('levelDescription').textContent =
-    difficultySettings[difficultySelect.value].description;
-
-  hintElement.textContent = 'Clique em uma letra para começar!';
-  $('hintButton').disabled = false;
-
-  messageElement.textContent = 'Escolha uma letra!';
-  messageElement.className = 'message';
-
-  $('revealButton').disabled = false;
+.logo {
+  width: 65px;
+  height: 65px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #8b5cf6, #5b21b6);
+  font-size: 32px;
+  box-shadow: 0 8px 25px #8b5cf655;
 }
 
-function resetDrawing() {
-  bodyParts.forEach(id => {
-    $(id).style.display = 'none';
-  });
+.header h1 {
+  font-size: clamp(23px, 5vw, 35px);
+  letter-spacing: 2px;
 }
 
-function createKeyboard() {
-  keyboard.replaceChildren();
-
-  alphabet.forEach(letter => {
-    const button = document.createElement('button');
-
-    button.type = 'button';
-    button.className = 'key';
-    button.textContent = letter;
-    button.setAttribute('aria-label', `Letra ${letter}`);
-
-    button.addEventListener('click', () => guessLetter(letter));
-
-    keyboard.appendChild(button);
-  });
+.header p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
-/* ==========================================
-   EXIBIR A PALAVRA
-========================================== */
-
-function renderWord() {
-  wordElement.replaceChildren();
-
-  currentWord.split('').forEach(letter => {
-    const slot = document.createElement('div');
-    slot.className = 'letter-slot';
-
-    if (guessedLetters.includes(letter) || gameFinished) {
-      slot.textContent = letter;
-    } else {
-      slot.textContent = '';
-    }
-
-    wordElement.appendChild(slot);
-  });
+.game-card {
+  padding: 25px;
+  border: 1px solid #ffffff18;
+  border-radius: 25px;
+  background: linear-gradient(145deg, #262344, #19172f);
+  box-shadow: 0 20px 60px #0005;
 }
 
-function updateLives() {
-  const remaining = maxLives - wrongAttempts;
-  $('lives').textContent = remaining;
+.top-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
 }
 
-/* ==========================================
-   TENTAR UMA LETRA
-========================================== */
+.info-box {
+  padding: 13px 8px;
+  border: 1px solid #ffffff12;
+  border-radius: 13px;
+  background: #ffffff0a;
+  text-align: center;
+}
 
-function guessLetter(letter) {
-  if (gameFinished || guessedLetters.includes(letter)) return;
+.info-box span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
 
-  guessedLetters.push(letter);
+.info-box strong {
+  display: block;
+  margin-top: 7px;
+  font-size: 24px;
+}
 
-  const button = [...keyboard.children].find(
-    item => item.textContent === letter
-  );
+.settings {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
 
-  const correct = currentWord.includes(letter);
+.settings label {
+  color: var(--muted);
+  font-size: 13px;
+}
 
-  if (button) {
-    button.disabled = true;
-    button.classList.add(correct ? 'correct' : 'wrong');
+.settings select {
+  width: 100%;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid #ffffff20;
+  border-radius: 10px;
+  outline: none;
+  background: #302b50;
+  color: white;
+  cursor: pointer;
+}
+
+.settings select:focus {
+  border-color: var(--purple-light);
+}
+
+.settings option {
+  background: #201e3c;
+}
+
+.level-description {
+  margin-bottom: 15px;
+  padding: 11px;
+  border-radius: 10px;
+  background: #8b5cf61c;
+  color: #c4b5fd;
+  font-size: 12px;
+  text-align: center;
+}
+
+.game-area {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  align-items: center;
+  gap: 20px;
+  min-height: 260px;
+  padding: 15px;
+  border-radius: 18px;
+  background: #100f20a6;
+}
+
+.drawing-area {
+  display: grid;
+  place-items: center;
+}
+
+#hangman {
+  width: 100%;
+  max-width: 220px;
+  height: 220px;
+}
+
+.gallows {
+  fill: none;
+  stroke: #c4b5fd;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.body-part {
+  display: none;
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.word-area {
+  text-align: center;
+}
+
+.category-label {
+  margin-bottom: 22px;
+  color: var(--purple-light);
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.word {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  min-height: 50px;
+  margin-bottom: 20px;
+}
+
+.letter-slot {
+  width: 35px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  border-bottom: 3px solid var(--purple-light);
+  font-size: 25px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.hint {
+  min-height: 38px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.hint-button {
+  margin-top: 10px;
+  padding: 10px 15px;
+  border: 1px solid #a78bfa55;
+  border-radius: 10px;
+  background: #8b5cf622;
+  color: #ddd6fe;
+  font-weight: bold;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.hint-button:hover {
+  background: #8b5cf644;
+}
+
+.message {
+  min-height: 43px;
+  margin: 18px 0 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #ffffff0a;
+  color: #ddd6fe;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.message.success {
+  background: #34d39920;
+  color: var(--green);
+}
+
+.message.error {
+  background: #fb718520;
+  color: var(--red);
+}
+
+.keyboard {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.key {
+  width: 43px;
+  height: 43px;
+  border: 1px solid #ffffff20;
+  border-radius: 10px;
+  background: #373252;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform .15s, background .15s;
+}
+
+.key:hover:not(:disabled) {
+  transform: translateY(-3px);
+  background: var(--purple);
+}
+
+.key:disabled {
+  cursor: not-allowed;
+  opacity: .35;
+}
+
+.key.correct {
+  background: #167c5b;
+  border-color: var(--green);
+  opacity: 1;
+}
+
+.key.wrong {
+  background: #8f3048;
+  border-color: var(--red);
+  opacity: .6;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.actions button {
+  padding: 14px 20px;
+  border-radius: 12px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.actions button:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.15);
+}
+
+.new-game {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+
+.reveal-button {
+  background: #3a3555;
+  border: 1px solid #ffffff20;
+}
+
+footer {
+  margin-top: 22px;
+  color: #77738e;
+  font-size: 11px;
+  text-align: center;
+}
+
+@media (max-width: 650px) {
+  body {
+    padding: 12px 8px;
   }
 
-  if (correct) {
-    messageElement.textContent = 'Muito bem! Você encontrou uma letra!';
-    messageElement.className = 'message success';
-  } else {
-    wrongAttempts++;
-    bodyParts[wrongAttempts - 1] &&
-      ($(bodyParts[wrongAttempts - 1]).style.display = 'block');
-
-    messageElement.textContent = 'Ops! Essa letra não está na palavra.';
-    messageElement.className = 'message error';
+  .header {
+    margin: 12px 0 18px;
   }
 
-  renderWord();
-  updateLives();
-  checkGame();
+  .logo {
+    width: 50px;
+    height: 50px;
+    font-size: 25px;
+  }
+
+  .header p {
+    font-size: 11px;
+  }
+
+  .game-card {
+    padding: 15px 11px;
+  }
+
+  .settings {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .settings label {
+    align-self: end;
+  }
+
+  .game-area {
+    grid-template-columns: 1fr;
+    gap: 5px;
+    padding: 10px;
+  }
+
+  #hangman {
+    height: 180px;
+  }
+
+  .category-label {
+    margin-bottom: 15px;
+  }
+
+  .word {
+    gap: 5px;
+  }
+
+  .letter-slot {
+    width: 27px;
+    height: 36px;
+    font-size: 21px;
+  }
+
+  .key {
+    width: 36px;
+    height: 39px;
+    font-size: 14px;
+  }
+
+  .actions button {
+    flex: 1;
+    padding: 13px 8px;
+    font-size: 12px;
+  }
 }
 
-/* ==========================================
-   VERIFICAR VITÓRIA OU DERROTA
-========================================== */
-
-function checkGame() {
-  const won = currentWord.split('').every(letter =>
-    guessedLetters.includes(letter)
-  );
-
-  if (won) {
-    finishGame(true);
-    return;
+@media (max-width: 360px) {
+  .top-info {
+    gap: 5px;
   }
 
-  if (wrongAttempts >= maxLives) {
-    finishGame(false);
+  .info-box span {
+    font-size: 10px;
+  }
+
+  .key {
+    width: 31px;
+    height: 35px;
   }
 }
-
-function finishGame(won) {
-  if (gameFinished) return;
-
-  gameFinished = true;
-
-  [...keyboard.children].forEach(button => {
-    button.disabled = true;
-  });
-
-  $('hintButton').disabled = true;
-  $('revealButton').disabled = true;
-
-  renderWord();
-
-  if (won) {
-    const points = difficultySettings[difficultySelect.value].points;
-    const bonus = Math.max(0, maxLives - wrongAttempts) * 2;
-    const total = points + bonus + (hintUsed ? 0 : 5);
-
-    score += total;
-
-    messageElement.textContent =
-      `🎉 PARABÉNS! Você acertou e ganhou ${total} pontos!`;
-
-    messageElement.className = 'message success';
-  } else {
-    messageElement.textContent =
-      `😢 Fim de jogo! A palavra era: ${currentWord}`;
-
-    messageElement.className = 'message error';
-  }
-
-  $('score').textContent = score;
-  saveRecord();
-}
-
-/* ==========================================
-   SISTEMA DE DICAS
-========================================== */
-
-$('hintButton').addEventListener('click', () => {
-  if (gameFinished || hintUsed) return;
-
-  hintElement.textContent = `💡 Dica: ${currentHint}`;
-  hintUsed = true;
-
-  $('hintButton').disabled = true;
-
-  messageElement.textContent = 'Dica revelada! Boa sorte!';
-  messageElement.className = 'message';
-});
-
-/* ==========================================
-   REVELAR PALAVRA
-========================================== */
-
-$('revealButton').addEventListener('click', () => {
-  if (gameFinished) return;
-
-  gameFinished = true;
-  renderWord();
-
-  [...keyboard.children].forEach(button => {
-    button.disabled = true;
-  });
-
-  $('hintButton').disabled = true;
-  $('revealButton').disabled = true;
-
-  messageElement.textContent = `A palavra era: ${currentWord}`;
-  messageElement.className = 'message error';
-});
-
-/* ==========================================
-   TECLADO FÍSICO
-========================================== */
-
-document.addEventListener('keydown', event => {
-  const letter = event.key.toUpperCase();
-
-  if (/^[A-Z]$/.test(letter)) {
-    guessLetter(letter);
-  }
-
-  if (event.key === 'Enter' && gameFinished) {
-    newGame();
-  }
-});
-
-/* ==========================================
-   BOTÕES E CONFIGURAÇÕES
-========================================== */
-
-$('newGame').addEventListener('click', newGame);
-
-difficultySelect.addEventListener('change', newGame);
-categorySelect.addEventListener('change', newGame);
-
-/* ==========================================
-   INICIALIZAÇÃO
-========================================== */
-
-loadRecord();
-newGame();
